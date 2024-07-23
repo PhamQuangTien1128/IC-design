@@ -2,7 +2,7 @@
 //flag: OF, zero, slt(set on less than)
 module ALU8bit(input [7:0] a, input [7:0] b,
 					input [3:0] Op,
-					output reg [7:0] result, output reg [7:0] product,
+					output reg [7:0] result, output reg [15:0] product,
 					output reg OF,
 					output reg zero, output reg slt);
 
@@ -92,7 +92,7 @@ always @(a, b, Op) begin
 	endcase
 	OF <= OFnet;
 	zero <= ((result == 8'b0) && (OFnet == 1'b0)) ? 1'b1 : 1'b0;
-	slt <= ((less == 8'b00000001) && (OFnet == 1'b0)) ? 1'b1 : 1'b0;
+	slt <= ((less[0] == 1'b1) && (OFnet == 1'b0)) ? 1'b1 : 1'b0;
 end
 endmodule
 
