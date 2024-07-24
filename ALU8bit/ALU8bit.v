@@ -194,8 +194,6 @@ module Generate(input [3:0] g, input [3:0] p, output G);
 endmodule
 
 module Multiply(input [7:0] a_in, input [7:0] b_in, output [15:0] product);
-reg [7:0] R00, R01, R10, R11, R20, R21, R30, R31;
-reg [7:0] R40, R41, R50, R51, R60, R61, R70, R71;
 
 wire [7:0] net00, net01, net10, net11, net20, net21, net30, net31;
 wire [7:0] net40, net41, net50, net51, net60, net61, net70, net71;
