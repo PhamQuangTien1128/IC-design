@@ -39,6 +39,7 @@ assign zero = ((result == 8'b0) && (!OF)) ? 1'b1 : 1'b0;
 
 //Set-on-less-than Flag
 assign slt = result[7] & Binv & c0 & (~OF);
+
 always @(a, b, Op) begin
 	case(Op)
 		4'b0000:begin //inverter
@@ -75,11 +76,11 @@ always @(a, b, Op) begin
 			endcase
 			product <= 16'b0;
 		end
-		4'b0111:begin //Rotate right
+		4'b0111:begin //Rotate left
 			result <= {a[0], a[7:1]};
 			product <= 16'b0;
 		end
-		4'b1000:begin //Rotate left
+		4'b1000:begin //Rotate right
 			result <= {a[6:0], a[7]};
 			product <= 16'b0;
 		end
@@ -409,10 +410,6 @@ adder8bit OUT_TC1(.a(add13Result_1), .b(8'b0), .c0(carry7), .Binv(1'b0), .Sum(ad
 
 assign product[7:0] = (check) ? add12Result_2 : add12Result;
 assign product[15:8] = (check) ? add13Result_2 : add13Result;
-
-//assign product[7:0] = add12Result;
-//assign product[15:8] = add13Result;
-
 endmodule
 
 module adder1bit(input a, input b,  
@@ -426,6 +423,7 @@ wire a1, b1, Binv1, c01;
 assign a1 = ~a; assign b1 = ~b; assign Binv1 = ~Binv; assign c01 = ~c0;
 assign OF = CarryOut & ((a1 & b1 & c01 & Binv1) | (a1 & b & c0 & Binv) | (a & b & c01 & Binv1) | (a & b1 & c0 & Binv));
 endmodule
+
 
 
 
