@@ -31,10 +31,13 @@ adder8bit A80(.a(a), .b(b), .c0(c0), .Binv(Binv), .Sum(arithmetic), .Carry(Carry
 //Multiply
 Multiply M0(.a_in(a), .b_in(b), .product(netProduct));
 
-//Overflow
+//Overflow Flag
 Overflow OV(.Binv(Binv), .c0(c0), .a(a[7]), .b(b[7]), .CarryOut(CarryOut), .OF(OF));
 
+//Zero Flag
 assign zero = ((result == 8'b0) && (!OF)) ? 1'b1 : 1'b0;
+
+//Set-on-less-than Flag
 assign slt = result[7] & Binv & c0 & (~OF);
 always @(a, b, Op) begin
 	case(Op)
