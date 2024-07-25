@@ -3,22 +3,15 @@
 module ALU8bit(input [7:0] a, input [7:0] b,
 					input [3:0] Op,
 					output reg [7:0] result, output reg [15:0] product,
-					output reg OF,
-					output reg zero, output reg slt);
+					output OF,
+					output zero, output slt);
 
 wire [7:0] invResult; wire [7:0] andResult; wire [7:0] orResult; 
 wire [7:0] arithmetic; wire [15:0] netProduct;
-
-wire OFnet; wire net_zero; wire net_slt;
-
 wire Binv;
 wire c0;
 
-wire [7:0] less;
 wire CarryOut;
-
-assign less[7:1] = 7'b0;
-assign less[0] = result[7];
 
 assign Binv = (Op == 4'b1010) ? 1'b1 : 1'b0;
 assign c0 = (Op == 4'b1010) ? 1'b1 : 1'b0;
@@ -39,9 +32,10 @@ adder8bit A80(.a(a), .b(b), .c0(c0), .Binv(Binv), .Sum(arithmetic), .Carry(Carry
 Multiply M0(.a_in(a), .b_in(b), .product(netProduct));
 
 //Overflow
-Overflow OV(.Binv(Binv), .c0(c0), .a(a[7]), .b(b[7]), .CarryOut(CarryOut), .r(arithmetic[7]), .OF(OFnet));
+Overflow OV(.Binv(Binv), .c0(c0), .a(a[7]), .b(b[7]), .CarryOut(CarryOut), .OF(OF));
 
-
+assign zero = ((result == 8'b0) && (!OF)) ? 1'b1 : 1'b0;
+assign slt = result[7] & Binv & c0 & (~OF);
 always @(a, b, Op) begin
 	case(Op)
 		4'b0000:begin //inverter
@@ -103,9 +97,6 @@ always @(a, b, Op) begin
 			product <= 16'b0;
 		end
 	endcase
-	OF <= OFnet;
-	zero <= ((result == 8'b0) && (OFnet == 1'b0)) ? 1'b1 : 1'b0;
-	slt <= ((less[0] == 1'b1) && (OFnet == 1'b0)) ? 1'b1 : 1'b0;
 end
 endmodule
 
@@ -201,19 +192,23 @@ wire [7:0] net40, net41, net50, net51, net60, net61, net70, net71;
 
 wire check;
 assign check = a_in[7] ^ b_in[7];
-wire [7:0] a_2, b_2;
-wire [7:0] a_22, b_22;
+
+wire [7:0] a1, b1; //One's complement
+wire [7:0] a2, b2; //Two's complement
+wire check_a, check_b;
 wire [7:0] a, b;
 
-assign a_2 = (a_in[7]) ? (~a_in) : a_in;
-assign b_2 = (b_in[7]) ? (~b_in) : b_in;
+assign a1 = ~a_in;
+assign b1 = ~b_in;
+assign check_a = a_in[7];
+assign check_b = b_in[7];
 
 //Two's Complement of inputs
-adder8bit IN_TC0(.a(a_2), .b(1'b1), .c0(1'b0), .Binv(1'b0), .Sum(a_22), .Carry());
-adder8bit IN_TC1(.a(b_2), .b(1'b1), .c0(1'b0), .Binv(1'b0), .Sum(b_22), .Carry());
+adder8bit IN_TC0(.a(a1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(a2), .Carry());
+adder8bit IN_TC1(.a(b1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(b2), .Carry());
 
-assign a = (a_in[7]) ? (a_22) : a_in;
-assign b = (b_in[7]) ? (b_22) : b_in;
+assign a = (check_a) ? (a2) : a_in;
+assign b = (check_b) ? (b2) : b_in;
 
 assign net00[0] = a[0] & b[0];
 assign net00[1] = a[1] & b[0];
@@ -397,19 +392,23 @@ adder8bit ADD11(.a(add6Result), .b(add7Result), .c0(carry5), .Binv(1'b0), .Sum(a
 adder8bit ADD12(.a(add8Result), .b(add9Result), .c0(1'b0), .Binv(1'b0), .Sum(add12Result), .Carry(carry6));
 adder8bit ADD13(.a(add10Result), .b(add11Result), .c0(carry6), .Binv(1'b0), .Sum(add13Result), .Carry());
 
-wire [7:0] add12Result_2, add12Result_22;
-wire [7:0] add13Result_2, add13Result_22;
+wire [7:0] add12Result_1, add12Result_2;
+wire [7:0] add13Result_1, add13Result_2;
 wire carry7;
 
-assign add12Result_2 = (check) ? (~add12Result) : add12Result;
-assign add13Result_2 = (check) ? (~add13Result) : add13Result;
+//One's Complement of product
+assign add12Result_1 = ~add12Result;
+assign add13Result_1 = ~add13Result;
 
 //Two's Complement of product
-adder8bit OUT_TC0(.a(add12Result_2), .b(1'b1), .c0(1'b0), .Binv(1'b0), .Sum(add12Result_22), .Carry(carry7));
-adder8bit OUT_TC1(.a(add13Result_2), .b(1'b0), .c0(carry7), .Binv(1'b0), .Sum(add13Result_22), .Carry());
+adder8bit OUT_TC0(.a(add12Result_1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(add12Result_2), .Carry(carry7));
+adder8bit OUT_TC1(.a(add13Result_1), .b(8'b0), .c0(carry7), .Binv(1'b0), .Sum(add13Result_2), .Carry());
 
-assign product[7:0] = (check) ? add12Result_22 : add12Result;
-assign product[15:8] = (check) ? add13Result_22 : add13Result;
+assign product[7:0] = (check) ? add12Result_2 : add12Result;
+assign product[15:8] = (check) ? add13Result_2 : add13Result;
+
+//assign product[7:0] = add12Result;
+//assign product[15:8] = add13Result;
 
 endmodule
 
@@ -419,8 +418,10 @@ module adder1bit(input a, input b,
 	assign result = a ^ b ^ ci;
 endmodule
 
-module Overflow(input Binv, input c0, input a, input b, input CarryOut, input r, output OF);
-	assign OF = (~c0 & ~Binv & ((~a & ~b & r) | (~a & ~b & CarryOut) | (a & b & ~CarryOut & ~r))) | (c0 & Binv & ((a & ~b & ~CarryOut & ~r) | (~a & b & r) | (~a & b & CarryOut)));
+module Overflow(input Binv, input c0, input a, input b, input CarryOut, output OF);
+wire a1, b1, Binv1, c01;
+assign a1 = ~a; assign b1 = ~b; assign Binv1 = ~Binv; assign c01 = ~c0;
+assign OF = CarryOut & ((a1 & b1 & c01 & Binv1) | (a1 & b & c0 & Binv) | (a & b & c01 & Binv1) | (a & b1 & c0 & Binv));
 endmodule
 
 
