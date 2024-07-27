@@ -5,5 +5,5 @@ assign a = (WE) ? D : d;
 assign b = ~a;
 assign c = (WE) ? (~D) : b;
 assign d = ~c;
-assign RBL = (~RE) ? 1'bz : (b) ? 1'b0 : 1'b1;
+assign RBL = (RE) ? (~RE & b) : 1'bz;
 endmodule
