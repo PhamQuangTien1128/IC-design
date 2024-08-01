@@ -1,17 +1,15 @@
 //OF = Overflow, c0 = carry_in0
 //flag: OF, zero, slt(set on less than)
-module ALU8bit(input [7:0] a, input [7:0] b,
-					input [3:0] Op,
+module ALU8bit(input [3:0] Op,
+					input [7:0] a, input [7:0] b,
 					output reg [7:0] result, output reg [15:0] product,
-					output OF,
-					output zero, output slt);
+					output OF, output zero, output slt);
 
-wire [7:0] invResult; wire [7:0] andResult; wire [7:0] orResult; 
+wire [7:0] invResult, andResult, orResult; 
+wire [7:0] sll, srl, sla, sra, rl, rr;
+// sll: shift left logic, srl: shift right logic, sla: shift left arithmetic, sra: shift right arithmetic, rl: rotate left, rr: rotate right
 wire [7:0] arithmetic; wire [15:0] netProduct;
-wire Binv;
-wire c0;
-
-wire CarryOut;
+wire Binv, c0, CarryOut;
 
 assign Binv = (Op == 4'b1010) ? 1'b1 : 1'b0;
 assign c0 = (Op == 4'b1010) ? 1'b1 : 1'b0;
@@ -24,6 +22,24 @@ assign andResult = a & b;
 
 //OR
 assign orResult = a | b;
+
+//Shift Left Logic
+shift_left_logic SLL(.a(a), .b(b), .r(sll));
+
+//Shift Right Logic
+shift_right_logic SRL(.a(a), .b(b), .r(srl));
+
+//Shift Left Arithmetic
+shift_left_arithmetic SLA(.a(a), .b(b), .r(sla));
+
+//Shift Right Arithmetic
+shift_right_arithmetic SRA(.a(a), .b(b), .r(sra));
+
+//Rotate Left
+rotate_left RL(.a(a), .b(b), .r(rl));
+
+//Rotate Right
+rotate_right RR(.a(a), .b(b), .r(rr));
 
 //Arithmetic
 adder8bit A80(.a(a), .b(b), .c0(c0), .Binv(Binv), .Sum(arithmetic), .Carry(CarryOut));
@@ -54,34 +70,28 @@ always @(a, b, Op) begin
 			result <= orResult;
 			product <= 16'b0;
 		end
-		4'b0011:begin //shift right logic 1 bit
-			result <= {1'b0, a[7:1]};
+		4'b0011:begin //shift left logic
+			result <= sll;
 			product <= 16'b0;
 		end
-		4'b0100:begin //shift left logic 1 bit
-			result <= {a[6:0], 1'b0};
+		4'b0100:begin //shift right logic
+			result <= srl;
 			product <= 16'b0;
 		end
-		4'b0101:begin //shift right arithmetic 1 bit
-			case(a[7])
-				1'b1: result <= {1'b1, a[7:1]};
-				1'b0: result <= {1'b0, a[7:1]};
-			endcase
+		4'b0101:begin //shift left arithmetic
+			result <= sla;
 			product <= 16'b0;
 		end
-		4'b0110:begin //shift left arithmetic 1 bit
-			case(a[7])
-				1'b1: result <= {1'b1, a[5:0], 1'b0};
-				1'b0: result <= {a[6:0], 1'b0};
-			endcase
+		4'b0110:begin //shift right arithmetic
+			result <= sra;
 			product <= 16'b0;
 		end
 		4'b0111:begin //Rotate left
-			result <= {a[0], a[7:1]};
+			result <= rl;
 			product <= 16'b0;
 		end
 		4'b1000:begin //Rotate right
-			result <= {a[6:0], a[7]};
+			result <= rr;
 			product <= 16'b0;
 		end
 		4'b1001:begin //add
@@ -424,6 +434,67 @@ assign a1 = ~a; assign b1 = ~b; assign Binv1 = ~Binv; assign c01 = ~c0;
 assign OF = CarryOut & ((a1 & b1 & c01 & Binv1) | (a1 & b & c0 & Binv) | (a & b & c01 & Binv1) | (a & b1 & c0 & Binv));
 endmodule
 
+module shift_left_logic(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a : 
+					 (b == 8'd1) ? {a[6:0], 1'b0} :
+					 (b == 8'd2) ? {a[5:0], 2'b0} :
+					 (b == 8'd3) ? {a[4:0], 3'b0} :
+					 (b == 8'd4) ? {a[3:0], 4'b0} :
+					 (b == 8'd5) ? {a[2:0], 5'b0} :
+					 (b == 8'd6) ? {a[1:0], 6'b0} :
+					 (b == 8'd7) ? {a[0], 7'b0} : 8'b0;
+endmodule
 
+module shift_right_logic(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a : 
+					 (b == 8'd1) ? {1'b0, a[7:1]} :
+					 (b == 8'd2) ? {2'b0, a[7:2]} :
+					 (b == 8'd3) ? {3'b0, a[7:3]} :
+					 (b == 8'd4) ? {4'b0, a[7:4]} :
+					 (b == 8'd5) ? {5'b0, a[7:5]} :
+					 (b == 8'd6) ? {6'b0, a[7:6]} :
+					 (b == 8'd7) ? {7'b0, a[7]} : 8'b0;
+endmodule
 
+module shift_left_arithmetic(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a : 
+					 (b == 8'd1) ? {a[7], a[5:0], 1'b0} :
+					 (b == 8'd2) ? {a[7], a[4:0], 2'b0} :
+					 (b == 8'd3) ? {a[7], a[3:0], 3'b0} :
+					 (b == 8'd4) ? {a[7], a[2:0], 4'b0} :
+					 (b == 8'd5) ? {a[7], a[1:0], 5'b0} :
+					 (b == 8'd6) ? {a[7], a[0], 6'b0} : {a[7], 7'b0};
+endmodule
 
+module shift_right_arithmetic(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a : 
+					 (b == 8'd1) ? {a[7], a[7:1]} :
+					 (b == 8'd2) ? {a[7], a[7], a[7:2]} :
+					 (b == 8'd3) ? {a[7], a[7], a[7], a[7:3]} :
+					 (b == 8'd4) ? {a[7], a[7], a[7], a[7], a[7:4]} :
+					 (b == 8'd5) ? {a[7], a[7], a[7], a[7], a[7], a[7:5]} :
+					 (b == 8'd6) ? {a[7], a[7], a[7], a[7], a[7], a[7], a[7:6]} : 
+					 {a[7], a[7], a[7], a[7], a[7], a[7], a[7], a[7]};
+endmodule
+
+module rotate_left(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a :
+					 (b == 8'd1) ? {a[6:0], a[7]} :
+			       (b == 8'd2) ? {a[5:0], a[7:6]} :
+			       (b == 8'd3) ? {a[4:0], a[7:5]} :
+			       (b == 8'd4) ? {a[3:0], a[7:4]} :
+			       (b == 8'd5) ? {a[2:0], a[7:3]} :
+			       (b == 8'd6) ? {a[1:0], a[7:2]} :
+			       (b == 8'd7) ? {a[0], a[7:1]} : 8'bz;
+endmodule
+
+module rotate_right(input [7:0] a, input [7:0] b, output [7:0] r);
+assign r[7:0] = (b == 8'd0) ? a :
+					 (b == 8'd1) ? {a[0], a[7:1]} :
+					 (b == 8'd2) ? {a[1:0], a[7:2]} :
+					 (b == 8'd3) ? {a[2:0], a[7:3]} :
+					 (b == 8'd4) ? {a[3:0], a[7:4]} :
+					 (b == 8'd5) ? {a[4:0], a[7:5]} :
+					 (b == 8'd6) ? {a[5:0], a[7:6]} :
+					 (b == 8'd7) ? {a[6:0], a[7]} : 8'bz;
+endmodule

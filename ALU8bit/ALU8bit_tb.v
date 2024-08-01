@@ -36,28 +36,40 @@ module ALU8bit_tb;
         a = 8'b11001100; b = 8'b10101010; Op = 4'd2;
         #10;
         
-        // Test case 4: Shift right logical
-        a = 8'b11110000; b = 8'b00000000; Op = 4'd3;
+        // Test Shift Left Logic
+        Op = 4'b0011;
+        a = 8'b11001100;
+        b = 8'b00000110; // Shift by 6
+        #10;
+		  
+        // Test Shift Right Logic
+        Op = 4'b0100;
+        a = 8'b11001100;
+        b = 8'b00000101; // Shift by 5
         #10;
         
-        // Test case 5: Shift left logical
-        a = 8'b11110000; b = 8'b00000000; Op = 4'd4;
+        // Test Shift Left Arithmetic
+        Op = 4'b0101;
+        a = 8'b11001100;
+        b = 8'b00000010; // Shift by 2
         #10;
-        
-        // Test case 6: Shift right arithmetic
-        a = 8'b11110000; b = 8'b00000000; Op = 4'd5;
+
+        // Test Shift Right Arithmetic
+        Op = 4'b0110;
+        a = 8'b11001100;
+        b = 8'b00001000; // Shift by 8
         #10;
-        
-        // Test case 7: Shift left arithmetic
-        a = 8'b11110000; b = 8'b00000000; Op = 4'd6;
+
+        // Test Rotate Left
+        Op = 4'b0111;
+        a = 8'b11001100;
+        b = 8'b00000111; // Rotate by 7
         #10;
-        
-        // Test case 8: Rotate right
-        a = 8'b11001001; b = 8'b00000000; Op = 4'd7;
-        #10;
-        
-        // Test case 9: Rotate left
-        a = 8'b11001001; b = 8'b00000000; Op = 4'd8;
+
+        // Test Rotate Right
+        Op = 4'b1000;
+        a = 8'b11001100;
+        b = 8'b00001000; // Rotate by 8
         #10;
         
         // Test case 10: Add operation
