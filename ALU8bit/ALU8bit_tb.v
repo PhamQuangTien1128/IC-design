@@ -1,5 +1,6 @@
 module ALU8bit_tb;
     // Testbench signals
+	 reg clk;
     reg [7:0] a, b;
     reg [3:0] Op;
     wire [7:0] result;
@@ -8,6 +9,7 @@ module ALU8bit_tb;
     
     // Instantiate the ALU
     ALU8bit uut (
+		  .clk(clk),
         .a(a),
         .b(b),
         .Op(Op),
@@ -17,13 +19,19 @@ module ALU8bit_tb;
         .zero(zero),
         .slt(slt)
     );
+	 
+	 initial begin
+        clk = 0;
+        forever #5 clk = ~clk; // 10ns period clock
+    end
     
     // Test procedure
     initial begin
         // Monitor changes
-        $monitor("Time = %0t, a = %b, b = %b, Op = %b, result = %b, product = %b, OF = %b, zero = %b, slt = %b",
-                 $time, a, b, Op, result, product, OF, zero, slt);
-        
+        $monitor("Time = %0t, clk = %b, a = %b, b = %b, Op = %b, result = %b, product = %b, OF = %b, zero = %b, slt = %b",
+                 $time, clk, a, b, Op, result, product, OF, zero, slt);
+        #5;
+		  
         // Test case 1: Inverter operation
         a = 8'b10101010; b = 8'b00000000; Op = 4'd0;
         #10;
