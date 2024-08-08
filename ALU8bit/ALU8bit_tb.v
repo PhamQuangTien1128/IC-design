@@ -98,11 +98,11 @@ module ALU8bit_tb;
         
         // Test case 12: Multiply operation
         a = 8'b00000011; b = 8'b00000101; Op = 4'd11;
-        #10;
+        #20;
 		  
 		  // Test case 12: Multiply operation
         a = 8'b01000110; b = 8'b10000001; Op = 4'd11;
-        #10;
+        #20;
 		  
 		  //Set Zero
 		  Op = 4'd15;
