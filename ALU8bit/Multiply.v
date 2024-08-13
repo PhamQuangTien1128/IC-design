@@ -7,8 +7,8 @@ wire [7:0] net40, net41, net50, net51, net60, net61, net70, net71;
 wire check;
 assign check = a_in[7] ^ b_in[7];
 
-wire [7:0] a1, b1; //One's complement
-wire [7:0] a2, b2; //Two's complement
+wire [7:0] a1, b1; 
+wire [7:0] a2, b2; 
 wire check_a, check_b;
 wire [7:0] a, b;
 
@@ -17,7 +17,6 @@ assign b1 = ~b_in;
 assign check_a = a_in[7];
 assign check_b = b_in[7];
 
-//Two's Complement of inputs
 adder8bit IN_TC0(.a(a1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(a2), .Carry());
 adder8bit IN_TC1(.a(b1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(b2), .Carry());
 
@@ -42,8 +41,6 @@ assign net01[5] = a[7] & b[6];
 assign net01[6] = a[7] & b[7];
 assign net01[7] = 1'b0;
 
-//---------------------------------------------------//
-
 assign net10[0] = 1'b0;
 assign net10[1] = a[0] & b[1];
 assign net10[2] = a[1] & b[1];
@@ -61,8 +58,6 @@ assign net11[4] = a[6] & b[6];
 assign net11[5] = a[6] & b[7];
 assign net11[6] = 1'b0;
 assign net11[7] = 1'b0;
-
-//---------------------------------------------------//
 
 assign net20[0] = 1'b0;
 assign net20[1] = 1'b0;
@@ -82,8 +77,6 @@ assign net21[5] = 1'b0;
 assign net21[6] = 1'b0;
 assign net21[7] = 1'b0;
 
-//-------------------------------------------------------//
-
 assign net30[0] = 1'b0;
 assign net30[1] = 1'b0;
 assign net30[2] = 1'b0;
@@ -101,8 +94,6 @@ assign net31[4] = 1'b0;
 assign net31[5] = 1'b0;
 assign net31[6] = 1'b0;
 assign net31[7] = 1'b0;
-
-//-------------------------------------------------//
 
 assign net40[0] = 1'b0;
 assign net40[1] = 1'b0;
@@ -122,8 +113,6 @@ assign net41[5] = 1'b0;
 assign net41[6] = 1'b0;
 assign net41[7] = 1'b0;
 
-//-----------------------------------------------------//
-
 assign net50[0] = 1'b0;
 assign net50[1] = 1'b0;
 assign net50[2] = 1'b0;
@@ -142,8 +131,6 @@ assign net51[5] = 1'b0;
 assign net51[6] = 1'b0;
 assign net51[7] = 1'b0;
 
-//------------------------------------------------------//
-
 assign net60[0] = 1'b0;
 assign net60[1] = 1'b0;
 assign net60[2] = 1'b0;
@@ -161,8 +148,6 @@ assign net61[4] = 1'b0;
 assign net61[5] = 1'b0;
 assign net61[6] = 1'b0;
 assign net61[7] = 1'b0;
-
-//--------------------------------------------------------//
 
 assign net70[0] = 1'b0;
 assign net70[1] = 1'b0;
@@ -210,11 +195,9 @@ wire [7:0] add12Result_1, add12Result_2;
 wire [7:0] add13Result_1, add13Result_2;
 wire carry7;
 
-//One's Complement of product
 assign add12Result_1 = ~add12Result;
 assign add13Result_1 = ~add13Result;
 
-//Two's Complement of product
 adder8bit OUT_TC0(.a(add12Result_1), .b(8'b00000001), .c0(1'b0), .Binv(1'b0), .Sum(add12Result_2), .Carry(carry7));
 adder8bit OUT_TC1(.a(add13Result_1), .b(8'b0), .c0(carry7), .Binv(1'b0), .Sum(add13Result_2), .Carry());
 
